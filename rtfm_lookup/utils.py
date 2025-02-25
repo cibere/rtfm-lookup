@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .manual import Manual
+    from _collections_abc import dict_keys, dict_values
 
 __all__ = ("ManualsIterable",)
 
@@ -27,3 +28,14 @@ class ManualsIterable:
         if isinstance(item, str):
             return item in self.__actual
         return item in self.__actual.values()
+
+    def keys(self) -> dict_keys[str, Manual]:
+        return self.__actual.keys()
+    
+    names = keys
+    
+    def values(self) -> dict_values[str, Manual]:
+        return self.__actual.values()
+    
+    def clear(self) -> None:
+        self.__actual.clear()
