@@ -92,6 +92,8 @@ class RtfmManager:
         indexer_name: IndexerName | None = None,
     ) -> Manual | None:
         if isinstance(url, str):
+            if not url.startswith(("http://", "https://")):
+                url = f"https://{url}"
             url = URL(url.rstrip("/"))
 
         for indexer in indexers.values():
