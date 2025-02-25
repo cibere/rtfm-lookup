@@ -31,12 +31,13 @@ log = logging.getLogger(__name__)
 class RtfmManager:
     _session: aiohttp.ClientSession
 
-    def __init__(self) -> None:
+    def __init__(self, **options: Any) -> None:
         self.cache_lock = BetterLock()
         self._manuals: dict[str, Manual] = {}
         self._session = Filler(
             "Rtfm Manager has not been initialized yet. You can do so by using it as a context manager, or awaiting the manager."
         )  # pyright: ignore[reportAttributeAccessIssue]
+        self.options = options
 
     @property
     def manuals(self) -> ManualsIterable:

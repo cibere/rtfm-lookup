@@ -2,16 +2,12 @@ from __future__ import annotations
 
 from typing import Any
 
+import msgspec
+
 __all__ = ("Entry",)
 
 
-class Entry:
-    def __init__(
-        self,
-        text: str,
-        url: Any,
-        options: dict[str, Any] | None = None,
-    ) -> None:
-        self.text = text
-        self.url = str(url)
-        self.options = options or {}
+class Entry(msgspec.Struct):
+    text: str
+    url: str
+    options: dict[str, Any] = msgspec.field(default_factory=dict)

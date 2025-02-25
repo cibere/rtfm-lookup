@@ -39,15 +39,17 @@ class Manual:
     ) -> None:
         self.name = name
         self.loc = loc
-        self.options = options or {}
         self.manager = manager
         self.indexer = indexer(self)
+        self.options = self.manager.options["default_manual_options"] or {}
 
         self.cache = None
+        if options:
+            self.options.update(options)
 
     @property
     def is_api(self) -> bool:
-        return self.indexer.is_api
+        return self.options.get("is_api", False)
 
     @property
     def favicon_url(self) -> str | None:

@@ -132,7 +132,7 @@ class InterSphinx(Indexer, name=IndexerName.intersphinx):
 
             cache[label] = Entry(
                 label,
-                url,
+                str(url),
                 options={"sub": f"{directive} | priority: {prio}"},
             )
 

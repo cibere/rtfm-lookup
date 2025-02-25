@@ -34,6 +34,6 @@ class Mkdocs(Indexer, name=IndexerName.mkdocs):
         data = search_file_decoder.decode(raw_content)
 
         return {
-            entry.title: Entry(entry.title, self / entry.location)
+            entry.title: Entry(entry.title, str(self / entry.location))
             for entry in data.docs
         }

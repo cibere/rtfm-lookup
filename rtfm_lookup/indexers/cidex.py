@@ -5,10 +5,11 @@ from typing import TYPE_CHECKING, Any
 
 import msgspec
 from aiohttp import ClientSession
+from flogin.utils import print
 from msgspec import Struct
 from yarl import URL
 
-from .._types import Cache
+from .._types import Cache  # noqa: TC001 # for msgspec's type resolving
 from ..enums import IndexerName
 from .base import Indexer
 
@@ -24,22 +25,22 @@ class BaseIndex(Struct):
 class ApiIndex(BaseIndex, tag="api-index"):
     url: str
     options: dict[str, Any]
-    version: str = "2.0"
+    version: str = "2.1"
 
 
 class CacheIndex(BaseIndex, tag="cache-index"):
     cache: Cache
-    version: str = "2.0"
+    version: str = "2.1"
 
 
 class VariantManifest(Struct, tag="variant-manifest"):
     variants: list[str]
-    version: str = "2.0"
+    version: str = "2.1"
 
 
 CidexResponse = CacheIndex | VariantManifest | ApiIndex
 msgpack = msgspec.msgpack.Decoder(type=CidexResponse)
-api_decoder = msgspec.json.Decoder(type=Cache)
+api_decoder = msgspec.json.Decoder(type=CacheIndex)
 INDEX_URL = "https://github.com/cibere/Rtfm-Indexes/raw/refs/heads/indexes-v2/indexes_v2/{}.cidex"
 
 
@@ -93,7 +94,7 @@ class _CidexIndexerBase(Indexer, name=IndexerName.cidex):
         index = await self.fetch_index(self.session, url)
 
         if isinstance(index, ApiIndex):
-            self.is_api = True
+            self.manual["is_api"] = True
             self._api_info = index
             cache = {}
         else:
@@ -103,7 +104,7 @@ class _CidexIndexerBase(Indexer, name=IndexerName.cidex):
         return cache
 
     async def pre_query_hook(self, query: str) -> None:
-        if not self.is_api:
+        if not self.manual.is_api:
             return
 
         info = self._api_info
@@ -112,7 +113,9 @@ class _CidexIndexerBase(Indexer, name=IndexerName.cidex):
         async with self.session.post(info.url, json=payload) as res:
             raw_content = await res.read()
 
-        self.cache = api_decoder.decode(raw_content)
+        print(info.url)
+        print(raw_content.decode())
+        self.manual.cache = api_decoder.decode(raw_content).cache
 
 
 class CibereRtfmIndex(_CidexIndexerBase, name=IndexerName.cibere_rtfm_indexes):

@@ -21,7 +21,6 @@ class Indexer(ABC):
     def __init__(self, manual: Manual) -> None:
         self.manual = manual
         self.favicon_url: str | None = None
-        self.is_api = False
 
     def __init_subclass__(cls, name: IndexerName, **kwargs: Any) -> None:
         kwargs["name"] = name
