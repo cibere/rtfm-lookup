@@ -40,7 +40,7 @@ class Indexer(ABC):
         return self.loc.__truediv__(other)
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}>"
+        return f"<{self.__class__.__name__} {self.manual=} {self.favicon_url=}>"
 
     async def pre_query_hook(self, query: str) -> None:
         pass
