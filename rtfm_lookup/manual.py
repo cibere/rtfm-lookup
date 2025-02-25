@@ -41,7 +41,7 @@ class Manual:
         self.loc = loc
         self.manager = manager
         self.indexer = indexer(self)
-        self.options = self.manager.options["default_manual_options"] or {}
+        self.options = self.manager.options["default_manual_options"].copy() or {}
 
         self.cache = None
         if options:
@@ -60,7 +60,7 @@ class Manual:
             setattr(cls, key, value)
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} {self.name=} {self.loc=} {self.indexer=} {self.is_api=}>"
+        return f"<{self.__class__.__name__} {self.name=} {self.loc=} {self.is_api=}>"
 
     def __getitem__(self, key: str) -> Any:
         return self.options.__getitem__(key)
