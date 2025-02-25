@@ -75,12 +75,12 @@ class Manual:
         self.cache = await self.indexer.build_cache()
         return self.cache
 
-    async def query(self, text: str) -> AsyncIterator[Entry]:
+    async def query(self, text: str) -> AsyncIterator[tuple[int, Entry]]:
         if self.cache is None:
             self.cache = await self.refresh_cache()
 
         await self.indexer.pre_query_hook(text)
         matches = await asyncio.to_thread(self.manager.fuzzy_search, text, self.cache)
 
-        for _, match in matches:
-            yield match
+        for idx, (_, match) in enumerate(matches):
+            yield idx, match
