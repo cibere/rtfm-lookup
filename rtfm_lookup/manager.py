@@ -79,6 +79,9 @@ class RtfmManager:
                 *(man.refresh_cache() for man in self._manuals.values())
             )
 
+    def trigger_cache_reload(self) -> None:
+        asyncio.create_task(self.reload_cache())
+
     async def get_manual(
         self,
         name: str,
