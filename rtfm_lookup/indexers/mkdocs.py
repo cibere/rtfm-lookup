@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 import msgspec
 
 from ..entry import Entry
+from ..enums import IndexerName
 from .base import Indexer
 
 if TYPE_CHECKING:
@@ -25,7 +26,7 @@ class SearchIndexFile(msgspec.Struct):
 search_file_decoder = msgspec.json.Decoder(type=SearchIndexFile)
 
 
-class Mkdocs(Indexer, name="mkdocs"):
+class Mkdocs(Indexer, name=IndexerName.mkdocs):
     async def build_cache(self) -> Cache:
         async with self.session.get(self / "search" / "search_index.json") as res:
             raw_content: bytes = await res.content.read()
