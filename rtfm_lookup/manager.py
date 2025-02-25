@@ -103,9 +103,9 @@ class RtfmManager:
                 del man
             else:
                 if add:
-                    self[man.name] = man  # noqa: F821 # false positive: https://github.com/astral-sh/ruff/issues/16358
+                    self[man.name] = man  # noqa: F821 # false positive: https://github.com/astral-sh/ruff/issues/6242
 
-                return man  # noqa: F821 # false positive: https://github.com/astral-sh/ruff/issues/16358
+                return man  # noqa: F821 # false positive: https://github.com/astral-sh/ruff/issues/6242
 
     def export(self, format: Literal["json", "yaml", "msgpack"] = "json") -> bytes:
         match format:
