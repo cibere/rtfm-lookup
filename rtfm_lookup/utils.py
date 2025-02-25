@@ -3,8 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from .manual import Manual
     from _collections_abc import dict_keys, dict_values
+
+    from .manual import Manual
 
 __all__ = ("ManualsIterable",)
 
@@ -31,11 +32,11 @@ class ManualsIterable:
 
     def keys(self) -> dict_keys[str, Manual]:
         return self.__actual.keys()
-    
+
     names = keys
-    
+
     def values(self) -> dict_values[str, Manual]:
         return self.__actual.values()
-    
+
     def clear(self) -> None:
         self.__actual.clear()
