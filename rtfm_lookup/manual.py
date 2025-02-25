@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any
 
 import msgspec
 
+from .better_lock import BetterLock
 from .enums import IndexerName  # noqa: TC001 # for msgspec to resolve
 
 if TYPE_CHECKING:
@@ -42,6 +43,7 @@ class Manual:
         self.manager = manager
         self.indexer = indexer(self)
         self.options = self.manager.options["default_manual_options"].copy() or {}
+        self.cache_lock = BetterLock()
 
         self.cache = None
         if options:
@@ -74,8 +76,15 @@ class Manual:
         )
 
     async def refresh_cache(self) -> Cache:
-        self.cache = await self.indexer.build_cache()
-        return self.cache
+        if self.cache_lock.locked():
+            await self.cache_lock.wait()
+            if self.cache is not None:
+                return self.cache
+            raise ValueError("Cache Lock was released, but cache was not filled")
+
+        async with self.cache_lock:
+            self.cache = await self.indexer.build_cache()
+            return self.cache
 
     async def query(self, text: str) -> AsyncIterator[tuple[int, Entry]]:
         if self.cache is None:

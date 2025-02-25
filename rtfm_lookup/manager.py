@@ -8,7 +8,6 @@ import aiohttp
 import msgspec
 from yarl import URL
 
-from .better_lock import BetterLock
 from .filler import Filler
 from .fuzzy import finder as _fuzzy_finder
 from .indexers import indexers
@@ -32,7 +31,6 @@ class RtfmManager:
     _session: aiohttp.ClientSession
 
     def __init__(self, **options: Any) -> None:
-        self.cache_lock = BetterLock()
         self._manuals: dict[str, Manual] = {}
         self._session = Filler(
             "Rtfm Manager has not been initialized yet. You can do so by using it as a context manager, or awaiting the manager."
@@ -72,13 +70,7 @@ class RtfmManager:
         return reversed(_fuzzy_finder(text, list(cache.items()), key=lambda t: t[0]))
 
     async def reload_cache(self) -> None:
-        if self.cache_lock.locked():
-            return await self.cache_lock.wait()
-
-        async with self.cache_lock:
-            await asyncio.gather(
-                *(man.refresh_cache() for man in self._manuals.values())
-            )
+        await asyncio.gather(*(man.refresh_cache() for man in self._manuals.values()))
 
     def trigger_cache_reload(self) -> None:
         asyncio.create_task(self.reload_cache())
