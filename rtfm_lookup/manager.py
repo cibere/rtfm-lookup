@@ -147,3 +147,20 @@ class RtfmManager:
                 options=partial_manual.options,
             )
             self[man.name] = man
+
+    def load_partial(self, partial: PartialManual, *, add: bool = True) -> Manual:
+        man = Manual(
+            partial.name,
+            URL(partial.loc),
+            indexer=indexers[partial.type],
+            manager=self,
+            options=partial.options,
+        )
+
+        if add:
+            self[man.name] = man
+        return man
+
+    def load_partials(self, *partials: PartialManual) -> None:
+        for partial in partials:
+            self.load_partial(partial)
