@@ -1,5 +1,6 @@
 from __future__ import annotations
 
 from .entry import Entry
+from typing import TypeAlias
 
-type Cache = dict[str, Entry]
+Cache: TypeAlias = dict[str, Entry]
