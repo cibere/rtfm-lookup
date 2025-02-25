@@ -4,7 +4,7 @@ __all__ = ("IndexerName",)
 
 
 class IndexerName(Enum):
-    mdocs = "mdocs"
+    mkdocs = "mkdocs"
     intersphinx = "intersphinx"
     gidocgen = "gidocgen"
     cidex = "cidex"
