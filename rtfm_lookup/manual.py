@@ -93,5 +93,5 @@ class Manual:
         await self.indexer.pre_query_hook(text)
         matches = await asyncio.to_thread(self.manager.fuzzy_search, text, self.cache)
 
-        for idx, (_, match) in enumerate(matches):
+        for idx, ((_, match)) in enumerate(matches):
             yield idx, match

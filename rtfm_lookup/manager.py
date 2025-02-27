@@ -67,7 +67,7 @@ class RtfmManager:
         return self._manuals.__getitem__(key)
 
     def fuzzy_search(self, text: str, cache: Cache) -> Iterator[tuple[str, Entry]]:
-        return reversed(_fuzzy_finder(text, list(cache.items()), key=lambda t: t[0]))
+        return _fuzzy_finder(text, list(cache.items()), key=lambda t: t[0])
 
     async def reload_cache(self) -> None:
         await asyncio.gather(*(man.refresh_cache() for man in self._manuals.values()))
