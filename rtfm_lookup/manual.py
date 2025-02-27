@@ -95,3 +95,9 @@ class Manual:
 
         for idx, ((_, match)) in enumerate(matches):
             yield idx, match
+
+    @property
+    def icon_url(self) -> str:
+        return (
+            self.favicon_url or f"https://icons.duckduckgo.com/ip3/{self.loc.host}.ico"
+        )
