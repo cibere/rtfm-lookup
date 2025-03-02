@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import msgspec
 
-from ..entry import Entry
 from ..enums import IndexerName
 from .base import Indexer
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
-    from .._types import (
-        Cache,  # noqa: TC001 # this will be fixed in the next ruff release
+    from cidex.v2_1 import (
+        Entry,  # this will be fixed in the next ruff release
+        MutableCache,
     )
 
 
@@ -58,12 +58,12 @@ index_decoder = msgspec.json.Decoder(type=GiDocGenIndex)
 
 
 class GidocgenDocType(Indexer, name=IndexerName.gidocgen):
-    async def build_cache(self) -> Cache:
+    async def build_cache(self) -> MutableCache:
         async with self.session.get(self / "index.json") as res:
             raw_content: bytes = await res.content.read()
 
         data = index_decoder.decode(raw_content)
-        cache: Cache = {}
+        cache: MutableCache = {}
 
         for entry in data.symbols:
             label = entry.build_label()

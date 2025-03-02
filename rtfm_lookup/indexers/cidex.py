@@ -1,45 +1,26 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import msgspec
 from aiohttp import ClientSession
-from msgspec import Struct
+from cidex.v2_1 import ApiIndex, ApiRequest, Cache, CacheIndex, VariantManifest
 from yarl import URL
 
-from .._types import Cache  # noqa: TC001 # for msgspec's type resolving
 from ..enums import IndexerName
 from .base import Indexer
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from aiohttp import ClientSession
-
-
-class BaseIndex(Struct):
-    name: str
-    favicon_url: str | None
-
-
-class ApiIndex(BaseIndex, tag="api-index"):
-    url: str
-    options: dict[str, Any]
-    version: str = "2.1"
-
-
-class CacheIndex(BaseIndex, tag="cache-index"):
-    cache: Cache
-    version: str = "2.1"
-
-
-class VariantManifest(Struct, tag="variant-manifest"):
-    variants: list[str]
-    version: str = "2.1"
 
 
 CidexResponse = CacheIndex | VariantManifest | ApiIndex
 msgpack = msgspec.msgpack.Decoder(type=CidexResponse)
 api_decoder = msgspec.json.Decoder(type=CacheIndex)
+json_encoder = msgspec.json.Encoder()
 INDEX_URL = "https://github.com/cibere/Rtfm-Indexes/raw/refs/heads/indexes-v2/indexes_v2/{}.cidex"
 
 
@@ -51,7 +32,7 @@ class _CidexIndexerBase(Indexer, name=IndexerName.cidex):
         raise NotImplementedError
 
     def _resolve_variant_via_exact_match(
-        self, url: URL, variants: list[str]
+        self, url: URL, variants: Iterable[str]
     ) -> str | None:
         choice = None
 
@@ -108,8 +89,10 @@ class _CidexIndexerBase(Indexer, name=IndexerName.cidex):
     async def _make_request(self, query: str) -> Cache:
         info = self._api_info
 
-        payload = {"query": query, "options": info.options}
-        async with self.session.post(info.url, json=payload) as res:
+        payload = ApiRequest(query=query, options=info.options)
+        async with self.session.post(
+            info.url, data=json_encoder.encode(payload)
+        ) as res:
             raw_content = await res.read()
 
         return api_decoder.decode(raw_content).cache

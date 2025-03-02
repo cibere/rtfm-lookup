@@ -18,8 +18,8 @@ if TYPE_CHECKING:
     from collections.abc import Generator, Iterator
     from types import TracebackType
 
-    from ._types import Cache
-    from .entry import Entry
+    from cidex.v2_1 import Cache, Entry
+
     from .enums import IndexerName
 
 __all__ = ("RtfmManager",)

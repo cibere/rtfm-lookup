@@ -1,15 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import msgspec
+from cidex.v2_1 import Entry, MutableCache
 
-from ..entry import Entry
 from ..enums import IndexerName
 from .base import Indexer
-
-if TYPE_CHECKING:
-    from .._types import Cache
 
 
 class DocEntry(msgspec.Struct):
@@ -27,7 +22,7 @@ search_file_decoder = msgspec.json.Decoder(type=SearchIndexFile)
 
 
 class Mkdocs(Indexer, name=IndexerName.mkdocs):
-    async def build_cache(self) -> Cache:
+    async def build_cache(self) -> MutableCache:
         async with self.session.get(self / "search" / "search_index.json") as res:
             raw_content: bytes = await res.content.read()
 

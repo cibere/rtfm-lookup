@@ -11,10 +11,9 @@ from .enums import IndexerName  # noqa: TC001 # for msgspec to resolve
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
+    from cidex.v2_1 import Cache, Entry
     from yarl import URL
 
-    from ._types import Cache
-    from .entry import Entry
     from .indexers import Indexer
     from .manager import RtfmManager
 
@@ -27,8 +26,6 @@ class PartialManual(msgspec.Struct):
 
 
 class Manual:
-    cache: Cache | None
-
     def __init__(
         self,
         name: str,
@@ -47,7 +44,7 @@ class Manual:
         )
         self.cache_lock = BetterLock()
 
-        self.cache = None
+        self.cache: Cache | None = None
         if options:
             self.options.update(options)
 
@@ -91,6 +88,7 @@ class Manual:
     async def query(self, text: str) -> AsyncIterator[tuple[int, Entry]]:
         if self.cache is None:
             self.cache = await self.refresh_cache()
+        assert self.cache
 
         if self.indexer.make_request:
             cache = await self.indexer.make_request(text)
