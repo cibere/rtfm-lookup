@@ -10,7 +10,8 @@ import re
 import zlib
 from typing import TYPE_CHECKING
 
-from ..entry import Entry
+from cidex.v2_1 import Entry, MutableCache
+
 from ..enums import IndexerName
 from .base import Indexer
 
@@ -20,8 +21,6 @@ if TYPE_CHECKING:
 
     from aiohttp import ClientSession
     from yarl import URL
-
-    from .._types import Cache
 
 
 class SphinxObjectFileReader:
@@ -77,10 +76,10 @@ class SphinxObjectFileReader:
 
 
 class InterSphinx(Indexer, name=IndexerName.intersphinx):
-    async def build_cache(self) -> Cache:
+    async def build_cache(self) -> MutableCache:
         file = await SphinxObjectFileReader.from_url(self.loc, session=self.session)
 
-        cache: Cache = {}
+        cache: MutableCache = {}
 
         # first line is version info
         inv_version = file.readline().rstrip()

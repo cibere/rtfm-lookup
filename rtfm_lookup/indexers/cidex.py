@@ -1,46 +1,26 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import msgspec
 from aiohttp import ClientSession
-from flogin.utils import print
-from msgspec import Struct
+from cidex.v2_1 import ApiIndex, ApiRequest, Cache, CacheIndex, VariantManifest
 from yarl import URL
 
-from .._types import Cache  # noqa: TC001 # for msgspec's type resolving
 from ..enums import IndexerName
 from .base import Indexer
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from aiohttp import ClientSession
-
-
-class BaseIndex(Struct):
-    name: str
-    favicon_url: str | None
-
-
-class ApiIndex(BaseIndex, tag="api-index"):
-    url: str
-    options: dict[str, Any]
-    version: str = "2.1"
-
-
-class CacheIndex(BaseIndex, tag="cache-index"):
-    cache: Cache
-    version: str = "2.1"
-
-
-class VariantManifest(Struct, tag="variant-manifest"):
-    variants: list[str]
-    version: str = "2.1"
 
 
 CidexResponse = CacheIndex | VariantManifest | ApiIndex
 msgpack = msgspec.msgpack.Decoder(type=CidexResponse)
 api_decoder = msgspec.json.Decoder(type=CacheIndex)
+json_encoder = msgspec.json.Encoder()
 INDEX_URL = "https://github.com/cibere/Rtfm-Indexes/raw/refs/heads/indexes-v2/indexes_v2/{}.cidex"
 
 
@@ -52,7 +32,7 @@ class _CidexIndexerBase(Indexer, name=IndexerName.cidex):
         raise NotImplementedError
 
     def _resolve_variant_via_exact_match(
-        self, url: URL, variants: list[str]
+        self, url: URL, variants: Iterable[str]
     ) -> str | None:
         choice = None
 
@@ -70,8 +50,11 @@ class _CidexIndexerBase(Indexer, name=IndexerName.cidex):
     async def fetch_index(
         self, session: ClientSession, url: URL
     ) -> CacheIndex | ApiIndex:
-        async with session.get(url) as res:
-            raw_content: bytes = await res.content.read()
+        if self.manual.options.get("file_override"):
+            raw_content = self.manual["file_override"].read_bytes()
+        else:
+            async with session.get(url) as res:
+                raw_content: bytes = await res.content.read()
 
         data: CidexResponse = msgpack.decode(raw_content)
 
@@ -94,8 +77,8 @@ class _CidexIndexerBase(Indexer, name=IndexerName.cidex):
         index = await self.fetch_index(self.session, url)
 
         if isinstance(index, ApiIndex):
-            self.manual["is_api"] = True
             self._api_info = index
+            self.make_request = self._make_request
             cache = {}
         else:
             cache = index.cache
@@ -103,19 +86,16 @@ class _CidexIndexerBase(Indexer, name=IndexerName.cidex):
         self.favicon_url = index.favicon_url
         return cache
 
-    async def pre_query_hook(self, query: str) -> None:
-        if not self.manual.is_api:
-            return
-
+    async def _make_request(self, query: str) -> Cache:
         info = self._api_info
 
-        payload = {"query": query, "options": info.options}
-        async with self.session.post(info.url, json=payload) as res:
+        payload = ApiRequest(query=query, options=info.options)
+        async with self.session.post(
+            info.url, data=json_encoder.encode(payload)
+        ) as res:
             raw_content = await res.read()
 
-        print(info.url)
-        print(raw_content.decode())
-        self.manual.cache = api_decoder.decode(raw_content).cache
+        return api_decoder.decode(raw_content).cache
 
 
 class CibereRtfmIndex(_CidexIndexerBase, name=IndexerName.cibere_rtfm_indexes):

@@ -18,8 +18,8 @@ if TYPE_CHECKING:
     from collections.abc import Generator, Iterator
     from types import TracebackType
 
-    from ._types import Cache
-    from .entry import Entry
+    from cidex.v2_1 import Cache, Entry
+
     from .enums import IndexerName
 
 __all__ = ("RtfmManager",)
@@ -67,7 +67,7 @@ class RtfmManager:
         return self._manuals.__getitem__(key)
 
     def fuzzy_search(self, text: str, cache: Cache) -> Iterator[tuple[str, Entry]]:
-        return reversed(_fuzzy_finder(text, list(cache.items()), key=lambda t: t[0]))
+        return _fuzzy_finder(text, list(cache.items()), key=lambda t: t[0])
 
     async def reload_cache(self) -> None:
         await asyncio.gather(*(man.refresh_cache() for man in self._manuals.values()))
@@ -82,23 +82,29 @@ class RtfmManager:
         *,
         add: bool = True,
         indexer_name: IndexerName | None = None,
+        options: dict[str, Any] | None = None,
+        raise_error: bool = False,
     ) -> Manual | None:
         if isinstance(url, str):
             if not url.startswith(("http://", "https://")):
                 url = f"https://{url}"
             url = URL(url.rstrip("/"))
 
+        kwargs = {"manager": self, "name": name, "loc": url}
+        if options:
+            kwargs["options"] = options
+
         for indexer in indexers.values():
             if indexer_name and indexer.name is not indexer_name:
                 continue
 
-            man = Manual(name, url, indexer=indexer, manager=self)
+            man = Manual(indexer=indexer, **kwargs)
             try:
                 await man.refresh_cache()
             except Exception as e:
                 log.debug("Wrong indexer for %r: %r", url, man.indexer.name, exc_info=e)
 
-                if getattr(e, "__rtfm_lookup_force_raise__", False):
+                if getattr(e, "__rtfm_lookup_force_raise__", False) or raise_error:
                     raise e
                 del man
             else:
