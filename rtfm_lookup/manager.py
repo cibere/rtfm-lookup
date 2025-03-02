@@ -82,23 +82,29 @@ class RtfmManager:
         *,
         add: bool = True,
         indexer_name: IndexerName | None = None,
+        options: dict[str, Any] | None = None,
+        raise_error: bool = False,
     ) -> Manual | None:
         if isinstance(url, str):
             if not url.startswith(("http://", "https://")):
                 url = f"https://{url}"
             url = URL(url.rstrip("/"))
 
+        kwargs = {"manager": self, "name": name, "loc": url}
+        if options:
+            kwargs["options"] = options
+
         for indexer in indexers.values():
             if indexer_name and indexer.name is not indexer_name:
                 continue
 
-            man = Manual(name, url, indexer=indexer, manager=self)
+            man = Manual(indexer=indexer, **kwargs)
             try:
                 await man.refresh_cache()
             except Exception as e:
                 log.debug("Wrong indexer for %r: %r", url, man.indexer.name, exc_info=e)
 
-                if getattr(e, "__rtfm_lookup_force_raise__", False):
+                if getattr(e, "__rtfm_lookup_force_raise__", False) or raise_error:
                     raise e
                 del man
             else:
