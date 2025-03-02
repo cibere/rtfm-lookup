@@ -88,7 +88,6 @@ class Manual:
     async def query(self, text: str) -> AsyncIterator[tuple[int, Entry]]:
         if self.cache is None:
             self.cache = await self.refresh_cache()
-        assert self.cache
 
         if self.indexer.make_request:
             cache = await self.indexer.make_request(text)
@@ -96,6 +95,7 @@ class Manual:
                 yield idx, match
             return
 
+        assert self.cache
         matches = await asyncio.to_thread(self.manager.fuzzy_search, text, self.cache)
 
         for idx, (_, match) in enumerate(matches):
