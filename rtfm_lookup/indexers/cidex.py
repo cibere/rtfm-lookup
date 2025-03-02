@@ -61,7 +61,9 @@ class _CidexIndexerBase(Indexer, name=IndexerName.cidex):
         if isinstance(data, VariantManifest):
             variant = self.resolve_variant(data)
             if not variant:
-                raise ValueError("Unable to resolve correct variant")
+                raise ValueError(
+                    f"Unable to resolve correct variant. Variants: {data.variants}"
+                )
 
             parts = list(url.parts)
             parts[-1] = parts[-1].replace(".cidex", f"-{variant}.cidex")
