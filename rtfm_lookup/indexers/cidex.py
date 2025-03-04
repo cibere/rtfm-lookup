@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
 
     from aiohttp import ClientSession
 
+log = logging.getLogger(__name__)
 
 CidexResponse = CacheIndex | VariantManifest | ApiIndex
 msgpack = msgspec.msgpack.Decoder(type=CidexResponse)
@@ -64,6 +66,9 @@ class _CidexIndexerBase(Indexer, name=IndexerName.cidex):
                 raise ValueError(
                     f"Unable to resolve correct variant. Variants: {data.variants}"
                 )
+            log.debug(
+                "Chose the %r variant for the following url: %s", variant, self.loc
+            )
 
             parts = list(url.parts)
             parts[-1] = parts[-1].replace(".cidex", f"-{variant}.cidex")
