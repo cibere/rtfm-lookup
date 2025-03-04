@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 from cidex.v2_1 import Entry, MutableCache
 
 from ..enums import IndexerName
+from ..utils import remove_page_path
 from .base import Indexer
 
 if TYPE_CHECKING:
@@ -77,7 +78,9 @@ class SphinxObjectFileReader:
 
 class InterSphinx(Indexer, name=IndexerName.intersphinx):
     async def build_cache(self) -> MutableCache:
-        file = await SphinxObjectFileReader.from_url(self.loc, session=self.session)
+        file = await SphinxObjectFileReader.from_url(
+            remove_page_path(self.loc), session=self.session
+        )
 
         cache: MutableCache = {}
 

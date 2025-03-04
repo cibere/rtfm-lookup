@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from _collections_abc import dict_keys, dict_values
 
+    from yarl import URL
+
     from .manual import Manual
 
 __all__ = ("ManualsIterable",)
@@ -40,3 +42,13 @@ class ManualsIterable:
 
     def clear(self) -> None:
         self.__actual.clear()
+
+
+def remove_page_path(url: URL):
+    if not url.parts[-1].endswith(".html"):
+        return url
+
+    parts = list(url.parts[0:-1])
+    while "/" in parts:
+        parts.remove("/")
+    return url.with_path("").joinpath(*parts)
