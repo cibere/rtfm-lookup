@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from _collections_abc import dict_keys, dict_values
+    from collections.abc import Iterator
 
     from yarl import URL
 
@@ -42,6 +43,9 @@ class ManualsIterable:
 
     def clear(self) -> None:
         self.__actual.clear()
+
+    def __iter__(self) -> Iterator[Manual]:
+        return self.__actual.values().__iter__()
 
 
 def remove_page_path(url: URL):
