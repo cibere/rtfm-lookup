@@ -1,17 +1,13 @@
 from __future__ import annotations
 
 import msgspec
+from cidex.v2_1 import (
+    Entry,  # this will be fixed in the next ruff release
+    MutableCache,
+)
 
 from ..enums import IndexerName
 from .base import Indexer
-
-TYPE_CHECKING = False
-if TYPE_CHECKING:
-    from cidex.v2_1 import (
-        Entry,  # this will be fixed in the next ruff release
-        MutableCache,
-    )
-
 
 TYPE_REPLACEMENTS = {
     "record": "struct",
