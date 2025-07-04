@@ -9,7 +9,7 @@ from .mkdocs import Mkdocs
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from ..enums import (
-        IndexerName,  # noqa: TC001 # this will be fixed in the next ruff release
+        IndexerName,  # this will be fixed in the next ruff release
     )
 
 
